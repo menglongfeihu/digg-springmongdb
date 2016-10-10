@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<portable-config>
+	<config-file path="WEB-INF/web.xml">
+		<replace xpath="/web-app/context-param[2]/param-value">production</replace>
+	</config-file>
+
+	<config-file path="WEB-INF/classes/application.properties">
+		<replace key="production.environment">production</replace>
+		<replace key="zookeeper.center">10.10.78.95:2181,10.10.78.61:2181,10.10.77.208:2181,10.10.52.114:2181,10.10.52.115:2181</replace>
+
+		<replace key="memcache.servers">10.16.61.67:11211 10.16.61.68:11211 10.16.61.69:11211 10.16.61.70:11211</replace>
+
+		<replace key="redis.server.name">10.10.77.182</replace>
+
+		<replace key="mongodb.masterip">10.16.52.159</replace>
+		<replace key="mongodb.marsterport">10000</replace>
+		<replace key="mongodb.slaveip">10.16.52.161</replace>
+		<replace key="mongodb.slaveport">10000</replace>
+		<replace key="mongodb.dbName">digg</replace>
+		<replace key="mongodb.dbUserName">digg</replace>
+		<replace key="mongodb.dbPassword">rypTV836</replace>
+
+		<replace key="metaq.group">diggGroup</replace>
+		<replace key="metaq.topic">diggTopic</replace>
+	</config-file>
+</portable-config>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/data/mongo
+        http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- Activates mapping of @Controller -->
+	<context:component-scan base-package="com.sohu.tv.digg.*">
+		<!-- 排除springmvc的扫描范围，由于子上下文会继承父上下文并覆盖，所以此处扫描controller无用，会被覆盖掉。浪费资源 -->
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<mongo:mongo id="mongo" host="${mongodb.masterip}" port="${mongodb.masterport}">
+		<!-- 一些连接属性的设置 -->
+		<mongo:options connections-per-host="${mongodb.connectionsPerHost}"
+			threads-allowed-to-block-for-connection-multiplier="${mongodb.threadsAllowedToBlockForConnectionMultiplier}"
+			connect-timeout="${mongodb.connectTimeout}" max-wait-time="${mongodb.maxWaitTime}"
+			auto-connect-retry="${mongodb.autoConnectRetry}" socket-keep-alive="${mongodb.socketKeepAlive}"
+			socket-timeout="${mongodb.socketTimeout}" slave-ok="${mongodb.slaveOk}"
+			write-number="1" write-timeout="0" write-fsync="true" />
+	</mongo:mongo>
+
+	<!-- mongo的工厂，通过它来取得mongo实例,dbname为mongodb的数据库名，没有的话会自动创建 -->
+	<mongo:db-factory id="mongoDbFactory" dbname="${mongodb.dbName}"
+		mongo-ref="mongo" /><!--  username="${mongodb.dbUserName}" password="${mongodb.dbPassword}" -->
+
+	<!-- 默认Mongodb类型映射 -->
+	<bean id="defaultMongoTypeMapper"
+		class="org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper">
+		<constructor-arg name="typeKey">
+			<null /><!-- 这里设置为空,可以把 spring data mongodb 多余保存的_class字段去掉 -->
+		</constructor-arg>
+	</bean>
+	<!-- 转换器：1、去掉write的_class字段 2、TimestampConverter -->
+    <mongo:mapping-converter id="mongoConverter" base-package="com.sohu.tv.digg.converter"  mongo-template-ref="defaultMongoTypeMapper" >
+        <mongo:custom-converters>
+          <mongo:converter>
+                <bean class="com.sohu.tv.digg.converter.TimestampConverter" />
+          </mongo:converter>
+
+        </mongo:custom-converters>
+    </mongo:mapping-converter>
+
+	<!-- mongodb的主要操作对象，所有对mongodb的增删改查的操作都是通过它完成 -->
+	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+		<constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+		<constructor-arg name="mongoConverter" ref="mongoConverter" />
+	</bean>
+
+	<!-- 映射转换器，扫描back-package目录下的文件，根据注释，把它们作为mongodb的一个collection的映射 -->
+	<mongo:mapping-converter base-package="com.sohu.tv.**.model.*" />
+
+	<!-- mongodb bean的仓库目录，会自动扫描扩展了MongoRepository接口的接口进行注入 -->
+	<mongo:repositories base-package="com.sohu.tv.digg.**.dao.*" />
+
+</beans>

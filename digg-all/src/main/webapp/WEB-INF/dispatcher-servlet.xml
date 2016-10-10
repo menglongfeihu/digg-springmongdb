@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<bean id="exceptionResolver"
+		class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="exceptionMappings">
+			<props>
+				<prop key="org.springframework.dao.DataAccessException">
+					dataAccessFailure
+				</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- Activates mapping of @Controller -->
+	<context:component-scan base-package="com.sohu.tv.*" />
+
+	<!-- View Resolver for JSPs 如果viewName在viewNames列表中，则使用JSP View， 否则转给ViewResolver链中的下一个viewResolver处理（也就是tiles） -->
+	<bean id="jstlViewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/pages/" />
+		<property name="suffix" value=".jsp" />
+		<property name="viewNames">
+			<list>
+				<value>*</value>
+			</list>
+		</property>
+		<property name="order" value="1" />
+	</bean>
+
+	<bean id="webContentInterceptor"
+		class="org.springframework.web.servlet.mvc.WebContentInterceptor">
+		<property name="cacheSeconds" value="0" />
+		<property name="useExpiresHeader" value="true" />
+		<property name="useCacheControlHeader" value="true" />
+		<property name="useCacheControlNoStore" value="true" />
+	</bean>
+
+
+</beans>
